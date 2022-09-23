@@ -11,9 +11,22 @@ import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib import colors
 from matplotlib import patches
-from matplotlib.tight_layout import get_renderer
+from matplotlib.backend_bases import _get_renderer
 
 from .reformat import query, _get_subset_mask
+
+def _get_renderer_upsetplot(fig):
+    """Exactly the same as the the matplotlib.pyplot.tight_layout.get_rendrer function. Removed in v3.6.0.
+    """
+    if fig._cachedRenderer:
+        return fig._cachedRenderer
+    else:
+        canvas = fig.canvas
+        if canvas and hasattr(canvas, "get_renderer"):
+            return canvas.get_renderer()
+        else:
+            from . import backend_bases
+            return backend_bases._get_renderer(fig)
 
 
 def _process_data(df, sort_by, sort_categories_by, subset_size,
@@ -548,7 +561,7 @@ class UpSet:
             fig = plt.gcf()
 
         # Determine text size to determine figure size / spacing
-        r = get_renderer(fig)
+        r = _get_renderer_upsetplot(fig)
         text_kw = {"size": matplotlib.rcParams['xtick.labelsize']}
         # adding "x" ensures a margin
         t = fig.text(0, 0, '\n'.join(str(label) + "x"
